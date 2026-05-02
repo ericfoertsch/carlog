@@ -3,11 +3,12 @@ import { ref, onMounted } from 'vue'
 import { useCatalog } from './composables/useCatalog'
 import type { Car, SortOption } from './types'
 
-import StatsBar  from './components/StatsBar.vue'
-import SyncPanel from './components/SyncPanel.vue'
-import CarCard   from './components/CarCard.vue'
-import CarForm   from './components/CarForm.vue'
-import CarDetail from './components/CarDetail.vue'
+import StatsBar   from './components/StatsBar.vue'
+import SyncPanel  from './components/SyncPanel.vue'
+import TagManager from './components/TagManager.vue'
+import CarCard    from './components/CarCard.vue'
+import CarForm    from './components/CarForm.vue'
+import CarDetail  from './components/CarDetail.vue'
 
 const { catalog, filtered, makes, search, filterMake, sortBy, saveCar, deleteCar } = useCatalog()
 
@@ -113,6 +114,7 @@ onMounted(() => {
 
   <StatsBar />
   <SyncPanel />
+  <TagManager />
 
   <!-- Controls -->
   <div class="controls">

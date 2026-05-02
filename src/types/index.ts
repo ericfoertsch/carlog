@@ -7,15 +7,22 @@ export interface Car {
   body: string
   color: string
   engine: string
-  transmission: string
-  horsepower: string
-  zeroToSixty: string
   location: string
   notes: string
   rating: number
   photos: string[]
   addedAt: number
   updatedAt: number
+  // Model-specific fields
+  customVsStock: '' | 'Custom' | 'Stock'
+  modelMaker: string
+  vintageVsCurrent: '' | 'Vintage' | 'Current'
+  kitPrice: string
+  material: '' | 'Plastic' | 'Metal' | 'Diecast'
+  promotional: boolean
+  scale: string
+  modelType: string
+  tags: string[]
 }
 
 export type SortOption = 'added' | 'year_desc' | 'year_asc' | 'make'

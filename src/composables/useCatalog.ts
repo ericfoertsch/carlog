@@ -7,9 +7,20 @@ function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
+function normalize(c: Partial<Car>): Car {
+  return {
+    id: '', make: '', model: '', year: '', trim: '', body: '', color: '', engine: '',
+    location: '', notes: '', rating: 0, photos: [], addedAt: 0, updatedAt: 0,
+    customVsStock: '', modelMaker: '', vintageVsCurrent: '', kitPrice: '',
+    material: '', promotional: false, scale: '', modelType: '', tags: [],
+    ...c,
+  } as Car
+}
+
 function load(): Car[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    return (raw as Partial<Car>[]).map(normalize)
   } catch {
     return []
   }
@@ -34,8 +45,11 @@ export function useCatalog() {
     const q = search.value.toLowerCase()
     const fm = filterMake.value
     let list = catalog.value.filter(car => {
-      const text = [car.make, car.model, car.year, car.trim, car.color, car.body, car.location]
-        .join(' ').toLowerCase()
+      const text = [
+        car.make, car.model, car.year, car.trim, car.color, car.body,
+        car.location, car.modelMaker, car.scale, car.modelType,
+        ...(car.tags ?? []),
+      ].join(' ').toLowerCase()
       return (!q || text.includes(q)) && (!fm || car.make === fm)
     })
     switch (sortBy.value) {
@@ -79,8 +93,12 @@ export function useCatalog() {
     catalog.value = catalog.value.filter(c => c.id !== id)
   }
 
+  function removeTagFromAll(tag: string) {
+    catalog.value = catalog.value.map(c => ({ ...c, tags: (c.tags ?? []).filter(t => t !== tag) }))
+  }
+
   function mergeCars(incoming: Car[]) {
-    incoming.forEach(rc => {
+    incoming.map(normalize).forEach(rc => {
       const idx = catalog.value.findIndex(c => c.id === rc.id)
       if (idx === -1) {
         catalog.value.push(rc)
@@ -91,16 +109,7 @@ export function useCatalog() {
   }
 
   return {
-    catalog,
-    search,
-    filterMake,
-    sortBy,
-    makes,
-    filtered,
-    stats,
-    getById,
-    saveCar,
-    deleteCar,
-    mergeCars,
+    catalog, search, filterMake, sortBy, makes, filtered, stats,
+    getById, saveCar, deleteCar, removeTagFromAll, mergeCars,
   }
 }

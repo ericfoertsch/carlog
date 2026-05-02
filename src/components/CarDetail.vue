@@ -11,26 +11,38 @@ const emit  = defineEmits<{
 
 const lightboxSrc = ref<string | null>(null)
 
-const SPECS: Array<{ key: keyof Car; label: string; suffix?: string }> = [
-  { key:'year',         label:'Year' },
-  { key:'body',         label:'Body' },
-  { key:'color',        label:'Color' },
-  { key:'engine',       label:'Engine' },
-  { key:'transmission', label:'Trans.' },
-  { key:'horsepower',   label:'HP', suffix:' hp' },
-  { key:'zeroToSixty',  label:'0–60' },
-  { key:'location',     label:'Location' },
+const VEHICLE_SPECS: Array<{ key: keyof Car; label: string; suffix?: string }> = [
+  { key:'year',   label:'Year' },
+  { key:'body',   label:'Body' },
+  { key:'color',  label:'Color' },
+  { key:'engine', label:'Engine' },
 ]
 
-const filledSpecs = computed(() =>
-  props.car ? SPECS.filter(s => props.car![s.key]).map(s => ({
+const MODEL_SPECS: Array<{ key: keyof Car; label: string; suffix?: string }> = [
+  { key:'customVsStock',    label:'Custom/Stock' },
+  { key:'vintageVsCurrent', label:'Era' },
+  { key:'modelMaker',       label:'Model Maker' },
+  { key:'scale',            label:'Scale' },
+  { key:'modelType',        label:'Type' },
+  { key:'material',         label:'Material' },
+  { key:'kitPrice',         label:'Kit Price' },
+]
+
+const vehicleSpecs = computed(() =>
+  props.car ? VEHICLE_SPECS.filter(s => props.car![s.key]).map(s => ({
+    ...s, value: String(props.car![s.key])
+  })) : []
+)
+
+const modelSpecs = computed(() =>
+  props.car ? MODEL_SPECS.filter(s => props.car![s.key]).map(s => ({
     ...s, value: String(props.car![s.key])
   })) : []
 )
 
 function handleDelete() {
   if (!props.car) return
-  if (confirm('Delete this car?')) {
+  if (confirm('Delete this model?')) {
     emit('delete', props.car.id)
     emit('update:modelValue', false)
   }
@@ -63,22 +75,44 @@ function handleDelete() {
                 </div>
                 <div v-if="car.year" class="car-year">{{ car.year }}</div>
               </div>
-              <div v-if="car.rating" class="stars">
-                {{ '★'.repeat(car.rating) }}{{ '☆'.repeat(5 - car.rating) }}
+              <div class="header-badges">
+                <span v-if="car.promotional" class="badge badge-promo">Promo</span>
+                <div v-if="car.rating" class="stars">
+                  {{ '★'.repeat(car.rating) }}{{ '☆'.repeat(5 - car.rating) }}
+                </div>
               </div>
             </div>
 
-            <!-- Specs -->
-            <div v-if="car && filledSpecs.length" class="spec-grid">
-              <div v-for="s in filledSpecs" :key="s.key" class="spec-item">
+            <!-- Vehicle Specs -->
+            <div v-if="vehicleSpecs.length" class="spec-grid">
+              <div v-for="s in vehicleSpecs" :key="s.key" class="spec-item">
                 <div class="spec-key">{{ s.label }}</div>
                 <div class="spec-val">{{ s.value }}{{ s.suffix ?? '' }}</div>
               </div>
             </div>
 
+            <!-- Model Specs -->
+            <template v-if="modelSpecs.length">
+              <div class="section-divider">Model Info</div>
+              <div class="spec-grid">
+                <div v-for="s in modelSpecs" :key="s.key" class="spec-item">
+                  <div class="spec-key">{{ s.label }}</div>
+                  <div class="spec-val">{{ s.value }}{{ s.suffix ?? '' }}</div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Tags -->
+            <template v-if="car.tags?.length">
+              <div class="section-divider">Tags</div>
+              <div class="tags-row">
+                <span v-for="tag in car.tags" :key="tag" class="tag-chip">{{ tag }}</span>
+              </div>
+            </template>
+
             <!-- Notes -->
             <template v-if="car.notes">
-              <div class="spec-key" style="margin:14px 0 6px">Notes</div>
+              <div class="section-divider">Notes</div>
               <div class="notes-block">{{ car.notes }}</div>
             </template>
 
@@ -109,15 +143,25 @@ function handleDelete() {
 .detail-photos { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; margin-bottom:14px; }
 .detail-photos img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; cursor:pointer; touch-action:manipulation; }
 .thumb-ph { width:100%; aspect-ratio:16/9; background:linear-gradient(135deg,#1a1a1c,#111); display:flex; align-items:center; justify-content:center; font-size:40px; border-radius:var(--radius); margin-bottom:14px; }
-.detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
+.detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
 .car-make-model { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; line-height:1.1; }
 .trim { color:var(--accent); font-weight:400; }
-.car-year { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--accent); letter-spacing:.04em; }
+.car-year { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--accent); letter-spacing:.04em; margin-top:2px; }
+.header-badges { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.badge { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
+.badge-promo { background:rgba(255,92,53,.15); color:var(--accent2); border:1px solid rgba(255,92,53,.35); }
 .stars { color:var(--accent); font-size:18px; letter-spacing:2px; }
-.spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+
+.section-divider { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); border-bottom:1px solid rgba(232,197,71,.2); padding-bottom:5px; margin:16px 0 10px; }
+
+.spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px; }
 .spec-item { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:11px; }
 .spec-key { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:3px; }
 .spec-val { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:17px; }
+
+.tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+.tag-chip { display:inline-flex; align-items:center; background:rgba(232,197,71,.12); color:var(--accent); border:1px solid rgba(232,197,71,.3); border-radius:20px; padding:4px 12px; font-size:12px; font-weight:500; }
+
 .notes-block { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:13px; font-size:14px; line-height:1.6; color:#ccc; white-space:pre-wrap; }
 .modal-actions { display:flex; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
 .modal-actions .btn { flex:1; padding:12px; font-size:14px; }
