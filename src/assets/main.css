@@ -1,0 +1,2 @@
+/* Additional global resets beyond what App.vue covers */
+* { -webkit-font-smoothing: antialiased; }
